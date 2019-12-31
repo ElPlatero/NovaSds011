@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Codehaufen.Sds011
 {
-    class ParticularMatterDataPacket
+    internal class ParticularMatterDataPacket
     {
         public const byte MessageHeader = 0xAA;
         public const byte CommanderNo = 0xC0;

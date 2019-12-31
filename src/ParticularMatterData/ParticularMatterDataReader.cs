@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Codehaufen.Sds011
 {
-    class ParticularMatterDataReader
+    internal class ParticularMatterDataReader
     {
         private readonly Stream _baseStream;
 
@@ -16,7 +16,7 @@ namespace Codehaufen.Sds011
         {
             var buffer = new byte[bytesToRead];
             _baseStream.Read(buffer, 0, buffer.Length);
-            for(int index = 0; index < buffer.Length; index++)
+            for(var index = 0; index < buffer.Length; index++)
             {
                 if (buffer[index] != ParticularMatterDataPacket.MessageHeader) continue;
                 if (buffer[++index] != ParticularMatterDataPacket.CommanderNo) continue;
@@ -35,7 +35,7 @@ namespace Codehaufen.Sds011
             }
         }
 
-        private uint ReadUint(byte[] buffer, ref int index)
+        private static uint ReadUint(IReadOnlyList<byte> buffer, ref int index)
         {
             var lowByte = buffer[index++];
             var hiByte = buffer[index++];

@@ -1,21 +1,26 @@
 ﻿using System;
 using System.IO.Ports;
+#if !DEBUG
 using System.Linq;
+#endif
 
 namespace Codehaufen.Sds011
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main()
         {
-            string[] ports = SerialPort.GetPortNames();
+            var ports = SerialPort.GetPortNames();
             Console.WriteLine("The following serial ports were found:");
-            foreach (string port in ports)
+            foreach (var port in ports)
             {
                 Console.WriteLine(port);
             }
-
-            var portName = /* ports.First(p => p.Contains("USB", StringComparison.CurrentCultureIgnoreCase)) */ "COM3";
+            #if DEBUG
+            const string portName = "COM3";
+            #else
+            var portName = ports.First(p => p.Contains("USB", StringComparison.CurrentCultureIgnoreCase));
+            #endif
 
             using var sensor = new ParticularMatterSensor(portName);
             sensor.PacketReceived += (s, e) => Console.WriteLine(e);

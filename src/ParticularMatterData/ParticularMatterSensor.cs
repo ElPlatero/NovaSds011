@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Codehaufen.Sds011
 {
-    class ParticularMatterSensor : IDisposable
+    internal class ParticularMatterSensor : IDisposable
     {
         private readonly SerialPort _port;
 
@@ -19,13 +19,12 @@ namespace Codehaufen.Sds011
 
         private void PortOnDataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            if (e.EventType == SerialData.Chars && sender is SerialPort serialPort)
-            {
-                var bufferSize = serialPort.BytesToRead;
-                var reader = new ParticularMatterDataReader(serialPort.BaseStream);
-                var resultList = reader.ReadPackets(bufferSize).ToList();
-                resultList.ForEach(OnPacketReceived);
-            }
+            if (e.EventType != SerialData.Chars || !(sender is SerialPort serialPort)) return;
+            
+            var bufferSize = serialPort.BytesToRead;
+            var reader = new ParticularMatterDataReader(serialPort.BaseStream);
+            var resultList = reader.ReadPackets(bufferSize).ToList();
+            resultList.ForEach(OnPacketReceived);
         }
 
         public event EventHandler<ParticularMatterDataPacket> PacketReceived;
