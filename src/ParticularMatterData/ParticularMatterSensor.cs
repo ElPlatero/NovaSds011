@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO.Ports;
-using System.Linq;
+using System.Threading.Tasks;
 
 namespace Codehaufen.Sds011
 {
@@ -11,20 +11,23 @@ namespace Codehaufen.Sds011
         public ParticularMatterSensor(string portName)
         {
             _port = new SerialPort(portName, 9600, Parity.None, 8);
-            _port.DataReceived += PortOnDataReceived;
+            _port.DataReceived += async (s, e) => await PortOnDataReceivedAsync(s, e);
         }
 
         public void BeginReceive() => _port.Open();
         public void Dispose() => _port?.Dispose();
 
-        private void PortOnDataReceived(object sender, SerialDataReceivedEventArgs e)
+        private async Task PortOnDataReceivedAsync(object sender, SerialDataReceivedEventArgs e)
         {
             if (e.EventType != SerialData.Chars || !(sender is SerialPort serialPort)) return;
             
             var bufferSize = serialPort.BytesToRead;
             var reader = new ParticularMatterDataReader(serialPort.BaseStream);
-            var resultList = reader.ReadPackets(bufferSize).ToList();
-            resultList.ForEach(OnPacketReceived);
+            var resultList = await reader.ReadPacketsAsync(bufferSize);
+            foreach (var packet in resultList)
+            {
+                OnPacketReceived(packet);
+            }
         }
 
         public event EventHandler<ParticularMatterDataPacket> PacketReceived;

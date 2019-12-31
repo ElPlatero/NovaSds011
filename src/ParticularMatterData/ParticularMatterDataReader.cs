@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Codehaufen.Sds011
 {
@@ -12,11 +13,13 @@ namespace Codehaufen.Sds011
             _baseStream = baseStream;
         }
 
-        public IEnumerable<ParticularMatterDataPacket> ReadPackets(int bytesToRead)
+        public async Task<ICollection<ParticularMatterDataPacket>> ReadPacketsAsync(int bytesToRead)
         {
             var buffer = new byte[bytesToRead];
-            _baseStream.Read(buffer, 0, buffer.Length);
-            for(var index = 0; index < buffer.Length; index++)
+            var bytesRead = await _baseStream.ReadAsync(buffer, 0, buffer.Length);
+            ICollection<ParticularMatterDataPacket> resultList = new List<ParticularMatterDataPacket>();
+
+            for(var index = 0; index < bytesRead; index++)
             {
                 if (buffer[index] != ParticularMatterDataPacket.MessageHeader) continue;
                 if (buffer[++index] != ParticularMatterDataPacket.CommanderNo) continue;
@@ -31,8 +34,10 @@ namespace Codehaufen.Sds011
 
                 if (buffer[index++] != result.Checksum) continue;
                 if (buffer[index] != ParticularMatterDataPacket.MessageTail) continue;
-                yield return result;
+                resultList.Add(result);
             }
+
+            return resultList;
         }
 
         private static uint ReadUint(IReadOnlyList<byte> buffer, ref int index)
